@@ -1,4 +1,4 @@
-package com.ayom.example.service;
+package com.ayom.example.common.service;
 
 import com.ayom.example.common.model.User;
 

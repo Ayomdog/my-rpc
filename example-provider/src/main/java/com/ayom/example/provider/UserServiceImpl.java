@@ -1,7 +1,7 @@
 package com.ayom.example.provider;
 
 import com.ayom.example.common.model.User;
-import com.ayom.example.service.UserService;
+import com.ayom.example.common.service.UserService;
 
 public class UserServiceImpl implements UserService {
     /**
