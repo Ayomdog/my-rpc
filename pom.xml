@@ -13,6 +13,7 @@
         <module>example-consumer</module>
         <module>example-provider</module>
         <module>my-rpc-easy</module>
+        <module>my-rpc-core</module>
     </modules>
 
     <properties>

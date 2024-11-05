@@ -9,7 +9,7 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>example-provider</artifactId>
+    <artifactId>my-rpc-core</artifactId>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -18,9 +18,9 @@
     </properties>
     <dependencies>
         <dependency>
-            <groupId>com.ayom</groupId>
-            <artifactId>example-common</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-core</artifactId>
+            <version>4.5.1</version>
         </dependency>
         <dependency>
             <groupId>cn.hutool</groupId>
@@ -31,19 +31,17 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.18.34</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.ayom</groupId>
-            <artifactId>example-common</artifactId>
-            <version>1.0-SNAPSHOT</version>
-            <scope>compile</scope>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.5.8</version>
         </dependency>
         <dependency>
-            <groupId>com.ayom</groupId>
-            <artifactId>my-rpc-core</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.2</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
-
 </project>
