@@ -1,9 +1,12 @@
 package com.ayom.myrpc.server;
 
+import com.ayom.myrpc.RpcApplication;
 import com.ayom.myrpc.model.RpcRequest;
 import com.ayom.myrpc.model.RpcResponse;
 import com.ayom.myrpc.registry.LocalRegistry;
 import com.ayom.myrpc.serializer.JdkSerializer;
+import com.ayom.myrpc.serializer.Serializer;
+import com.ayom.myrpc.serializer.SerializerFactory;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerRequest;
@@ -19,7 +22,8 @@ public class HttpServerHandler implements Handler<HttpServerRequest> {
     @Override
     public void handle(HttpServerRequest httpServerRequest) {
         //指定序列化器
-        final JdkSerializer serializer = new JdkSerializer();
+        //final JdkSerializer serializer = new JdkSerializer();
+        final Serializer serializer = SerializerFactory.getInstance(RpcApplication.getRpcConfig().getSerializer());
         //记录日志
         System.out.println("Receoved Request:" + httpServerRequest.method() + " " + httpServerRequest.uri());
         //异步处理Http请求
@@ -58,7 +62,7 @@ public class HttpServerHandler implements Handler<HttpServerRequest> {
     }
 
 
-    void doResponse(HttpServerRequest request, RpcResponse rpcResponse, JdkSerializer serializer) {
+    void doResponse(HttpServerRequest request, RpcResponse rpcResponse, Serializer serializer) {
         HttpServerResponse httpServerResponse = request.response()
                 .putHeader("content-type", "application/json");
         try{

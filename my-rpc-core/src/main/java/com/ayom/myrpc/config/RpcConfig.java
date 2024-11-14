@@ -1,5 +1,7 @@
 package com.ayom.myrpc.config;
 
+import com.ayom.myrpc.serializer.Serializer;
+import com.ayom.myrpc.serializer.SerializerKeys;
 import lombok.Data;
 
 /**
@@ -18,7 +20,7 @@ public class RpcConfig {
     /**
      * 服务器主机名
      */
-    private String serveName = "localhost";
+    private String serverHost = "localhost";
     /**
      * 服务器端口号
      */
@@ -27,4 +29,12 @@ public class RpcConfig {
      * 模拟调用
      */
     private boolean mock = false;
+    /**
+     * 序列化器
+     */
+    private String serializer = SerializerKeys.JDK;
+    /**
+     * 注册中心配置
+     */
+    private RegistryConfig registryConfig = new RegistryConfig();
 }

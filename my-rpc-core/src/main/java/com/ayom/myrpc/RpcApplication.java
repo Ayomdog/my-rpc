@@ -1,7 +1,10 @@
 package com.ayom.myrpc;
 
+import com.ayom.myrpc.config.RegistryConfig;
 import com.ayom.myrpc.config.RpcConfig;
 import com.ayom.myrpc.constant.RpcConstant;
+import com.ayom.myrpc.registry.Registry;
+import com.ayom.myrpc.registry.RegistryFactory;
 import com.ayom.myrpc.utils.ConfigUtils;
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,6 +23,11 @@ public class RpcApplication {
     public static void init(RpcConfig newRpcConifg){
         rpcConfig = newRpcConifg;
         log.info("rpc init ,config = {}",newRpcConifg.toString());
+        //注册中心初始化
+        RegistryConfig registryConfig = newRpcConifg.getRegistryConfig();
+        Registry registry = RegistryFactory.getInstance(registryConfig.getRegistry());
+        registry.init(registryConfig);
+        log.info("registry init ,config = {}",registryConfig);
     }
 
     /**

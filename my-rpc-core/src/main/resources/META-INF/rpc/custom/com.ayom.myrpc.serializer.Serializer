@@ -1,0 +1,2 @@
+json=com.ayom.myrpc.serializer.JsonSerializer
+kryo=com.ayom.myrpc.serializer.KryoSerializer

@@ -1,0 +1,3 @@
+jdk=com.ayom.myrpc.serializer.JdkSerializer
+hessian=com.ayom.myrpc.serializer.HessianSerializer
+
