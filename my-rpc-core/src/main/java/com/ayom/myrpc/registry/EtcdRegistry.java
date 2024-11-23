@@ -10,6 +10,7 @@ import io.etcd.jetcd.*;
 import io.etcd.jetcd.kv.GetResponse;
 import io.etcd.jetcd.options.GetOption;
 import io.etcd.jetcd.options.PutOption;
+import io.etcd.jetcd.watch.WatchEvent;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -24,6 +25,11 @@ import java.util.stream.Collectors;
 public class EtcdRegistry implements Registry{
     private Client client;
     private KV kvClient;
+    private RegistryServiceCache registryServiceCache;
+    /**
+     * 正在监听的key集合
+     */
+    private final Set<String> watchingKeySet = new HashSet<>();
     /**
      * 本机注册的节点key集合(用于维护续期)
      */
@@ -42,6 +48,11 @@ public class EtcdRegistry implements Registry{
         heartBeat();
     }
 
+    /**
+     * 服务注册
+     * @param serviceMetaInfo
+     * @throws Exception
+     */
     @Override
     public void register(ServiceMetaInfo serviceMetaInfo) throws Exception {
         //创建Lease和KV客户端
@@ -49,7 +60,7 @@ public class EtcdRegistry implements Registry{
         //创建一个30秒的租约
         long leaseId = leaseClient.grant(30).get().getID();
         //设置要存储的键值对
-        String registryKey = ETCD_ROOT_PATH + serviceMetaInfo.getServiceNodeKey();
+        String registryKey = ETCD_ROOT_PATH + serviceMetaInfo.getServiceNodeKey();// /rpc/serviceName:serviceVersion:serviceHost:servicePort
         ByteSequence key = ByteSequence.from(registryKey, StandardCharsets.UTF_8);
         ByteSequence value = ByteSequence.from(JSONUtil.toJsonStr(serviceMetaInfo), StandardCharsets.UTF_8);
         //将键值对与租约关联起来,并设置过期时间
@@ -60,6 +71,12 @@ public class EtcdRegistry implements Registry{
         localRegisterNodeKeySet.add(registryKey);
     }
 
+    /**
+     * 服务注销
+     * @param serviceMetaInfo
+     * @throws ExecutionException
+     * @throws InterruptedException
+     */
     @Override
     public void unRegister(ServiceMetaInfo serviceMetaInfo) throws ExecutionException, InterruptedException {
         String registryKey = ETCD_ROOT_PATH + serviceMetaInfo.getServiceNodeKey();
@@ -77,6 +94,12 @@ public class EtcdRegistry implements Registry{
      */
     @Override
     public List<ServiceMetaInfo> serviceDiscovery(String serviceKey) {
+        //先从缓存里面获取服务
+        List<ServiceMetaInfo> serviceMetaInfoList = registryServiceCache.readCache();
+        if (serviceMetaInfoList != null) {
+            return serviceMetaInfoList;
+        }
+
         //前缀搜索
         String searchPrefix = ETCD_ROOT_PATH + serviceKey;
         try{
@@ -84,18 +107,26 @@ public class EtcdRegistry implements Registry{
             ByteSequence key = ByteSequence.from(searchPrefix, StandardCharsets.UTF_8);
             List<KeyValue> keyValues = kvClient.get(key, getOption).get().getKvs();
 
-            return keyValues.stream().map(
+            List<ServiceMetaInfo> serviceMetaInfos = keyValues.stream().map(
                     keyValue -> {
+                        String serivceNodeKey = keyValue.getKey().toString(StandardCharsets.UTF_8);
+                        watch(serivceNodeKey);
                         String value = keyValue.getValue().toString(StandardCharsets.UTF_8);
-                        return JSONUtil.toBean(value,ServiceMetaInfo.class);
+                        return JSONUtil.toBean(value, ServiceMetaInfo.class);
                     }
             ).collect(Collectors.toList());
+            //将服务写入缓存
+            registryServiceCache.writeCache(serviceMetaInfos);
+            return serviceMetaInfos;
 
         }catch (Exception e){
             throw new RuntimeException("获取服务列表失败",e);
         }
     }
 
+    /**
+     * 关闭服务
+     */
     @Override
     public void destory() {
         System.out.println("当前节点下线");
@@ -174,6 +205,36 @@ public class EtcdRegistry implements Registry{
         // 支持秒级别定时任务
         CronUtil.setMatchSecond(true);
         CronUtil.start();
+    }
+
+    /**
+     * 监听器
+     * @param serviceNodeKey
+     */
+    @Override
+    public void watch(String serviceNodeKey) {
+        Watch watch = client.getWatchClient();
+        boolean newWatch = watchingKeySet.add(serviceNodeKey);
+        //对添加到集合中的节点进行监听
+        if(newWatch){
+            ByteSequence from = ByteSequence.from(serviceNodeKey, StandardCharsets.UTF_8);
+            watch.watch(from,response -> {
+                //获得监听到的事件列表
+                List<WatchEvent> events = response.getEvents();
+                for (WatchEvent event : events) {
+                    //获取每个事件的类型，如果为Delete则清空缓存重建
+                    WatchEvent.EventType eventType = event.getEventType();
+                    switch(eventType){
+                        case DELETE :
+                            registryServiceCache.clearCache();
+                            break;
+                        case PUT:
+                        default:
+                            break;
+                    }
+                }
+            });
+        }
     }
 
 }

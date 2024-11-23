@@ -1,28 +1,27 @@
 package com.ayom.myrpc.serializer;
 
-import com.caucho.hessian.io.HessianInput;
-import com.caucho.hessian.io.HessianOutput;
+import com.caucho.hessian.io.Hessian2Input;
+import com.caucho.hessian.io.Hessian2Output;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-/**
- * Hessian序列化器
- */
-public class HessianSerializer implements Serializer{
+public class HessianSerializer implements Serializer {
+
     @Override
     public <T> byte[] serialize(T obj) throws IOException {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        HessianOutput ho = new HessianOutput(bos);
-        ho.writeObject(obj);
-        return bos.toByteArray();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        Hessian2Output out = new Hessian2Output(baos);
+        out.writeObject(obj);
+        out.flush();
+        return baos.toByteArray();
     }
 
     @Override
     public <T> T deserialize(byte[] bytes, Class<T> clazz) throws IOException {
-        ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
-        HessianInput hi = new HessianInput(bis);
-        return (T) hi.readObject(clazz);
+        ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+        Hessian2Input in = new Hessian2Input(bais);
+        return (T) in.readObject(clazz);
     }
 }

@@ -53,7 +53,7 @@ public class SpiLoader {
      * 加载所有类型
      */
     public static void loadAll(){
-        log.info("加载所有SPI");
+//        log.info("加载所有SPI");
         for (Class<?> aClass : LOAD_CLASS_LIST) {
             load(aClass);
         }
@@ -91,7 +91,7 @@ public class SpiLoader {
     }
 
     public static Map<String,Class<?>> load(Class<?> loadClass){
-        log.info("加载类型位{}的SPI",loadClass.getName());
+//        log.info("加载类型位{}的SPI",loadClass.getName());
         Map<String,Class<?>> keyClassMap = new HashMap<>();
         for (String scanDir : SCAN_DIRS) {
             List<URL> resources = ResourceUtil.getResources(scanDir + loadClass.getName());

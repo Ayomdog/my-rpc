@@ -39,6 +39,7 @@ public class ServiceMetaInfo {
      * @return
      */
     public String getServiceKey(){
+        // key格式 serviceName:serviceVersion
         return String.format("%s:%s",serviceName,serviceVersion);
     }
 
@@ -47,6 +48,7 @@ public class ServiceMetaInfo {
      * @return
      */
     public String getServiceNodeKey(){
+        //serviceName:serviceVersion:serviceHost:servicePort
         return String.format("%s:%s:%s",getServiceKey(),serviceHost,servicePort);
     }
 
