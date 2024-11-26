@@ -9,6 +9,7 @@ import com.ayom.myrpc.registry.LocalRegistry;
 import com.ayom.myrpc.registry.Registry;
 import com.ayom.myrpc.registry.RegistryFactory;
 import com.ayom.myrpc.server.VertxHttpServer;
+import com.ayom.myrpc.server.tcp.VertxTcpServer;
 
 public class ProviderExample {
     public static void main(String[] args) {
@@ -33,7 +34,11 @@ public class ProviderExample {
             throw new RuntimeException(e);
         }
         //启动web服务
-        VertxHttpServer server = new VertxHttpServer();
-        server.doStart(RpcApplication.getRpcConfig().getServerPort());
+//        VertxHttpServer server = new VertxHttpServer();
+//        server.doStart(RpcApplication.getRpcConfig().getServerPort());
+
+        //启动TPC服务
+        VertxTcpServer vertxTcpServer = new VertxTcpServer();
+        vertxTcpServer.doStart(80);
     }
 }

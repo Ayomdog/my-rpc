@@ -1,8 +1,11 @@
 package com.ayom.myrpc.protocol;
 
+import lombok.Getter;
+
 /**
  * 协议消息的状态枚举
  */
+@Getter
 public enum ProtocolMessageStatusEnum {
     OK("ok",20),
     BAD_REQUEST("badRequest",40),

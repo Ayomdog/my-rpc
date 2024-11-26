@@ -1,8 +1,11 @@
 package com.ayom.myrpc.protocol;
 
+import lombok.Getter;
+
 /**
  * 协议消息类型枚举
  */
+@Getter
 public enum ProtocolMessageTypeEnum {
     REQUEST(0),
     RESPONSE(1),
