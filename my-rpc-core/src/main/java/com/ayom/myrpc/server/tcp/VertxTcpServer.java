@@ -8,6 +8,8 @@ import io.vertx.core.net.NetServer;
 import io.vertx.core.parsetools.RecordParser;
 import lombok.extern.slf4j.Slf4j;
 
+import java.lang.invoke.VarHandle;
+
 @Slf4j
 public class VertxTcpServer implements HttpServer {
 
@@ -21,48 +23,37 @@ public class VertxTcpServer implements HttpServer {
         Vertx vertx = Vertx.vertx();
         //创建TCP服务器
         NetServer server = vertx.createNetServer();
+        server.connectHandler(new TcpServerHandler());
         //处理请求
         server.connectHandler(socket -> {
-            //处理连接
-            socket.handler(buffer -> {
-                String testMessage = "hello,server!hello,server!hello,server!";
-                int length = testMessage.getBytes().length;
-
-                //构造Parser
-                RecordParser parser = RecordParser.newFixed(length);
-                parser.setOutput(new Handler<Buffer>() {
-                    @Override
-                    public void handle(Buffer buffer) {
-                        String str = new String(buffer.getBytes());
-                        System.out.println(str);
-                        if(testMessage.equals(str)){
-                            System.out.println("good");
-                        }
+            // 构造parser
+            RecordParser parser = RecordParser.newFixed(8);
+            parser.setOutput(new Handler<Buffer>(){
+                //初始化
+                int size = -1;
+                //一次完整的读取(请求头 + 请求体)
+                Buffer resultBuffer = Buffer.buffer();
+                @Override
+                public void handle(Buffer buffer) {
+                    if(-1 == size){
+                        //读取消息体长度
+                        size = buffer.getInt(4);
+                        parser.fixedSizeMode(size);
+                        //写入头信息到结果
+                        resultBuffer.appendBuffer(buffer);
+                    }else{
+                        //写入信息提到结果
+                        resultBuffer.appendBuffer(buffer);
+                        System.out.println(resultBuffer.toString());
+                        //重置一轮
+                        parser.fixedSizeMode(8);
+                        size = -1;
+                        resultBuffer = Buffer.buffer();
                     }
-                });
-                socket.handler(parser);
-//                if(buffer.getBytes().length < length){
-////                    System.out.println("半包，length=" + buffer.getBytes().length);
-//                    log.info("半包，length={}",buffer.getBytes().length);
-//                    return;
-//                }
-//                if(buffer.getBytes().length > length){
-////                    System.out.println("粘包，length=" + buffer.getBytes().length);
-//                    log.info("粘包，length={}",buffer.getBytes().length);
-//                    return;
-//                }
-//                String str = new String(buffer.getBytes(0,length));
-//                System.out.println(str);
-//                if(testMessage.equals(str)){
-////                    System.out.println("good");
-//                    log.info("good");
-//                }
-//                //处理接受到的字节数组
-//                byte[] bytes = buffer.getBytes();
-//                byte[] responseData = handleRequest(bytes);
-//                //发送响应
-//                socket.write(Buffer.buffer(responseData));
+                }
             });
+
+            socket.handler(parser);
         });
 
         //启动TCP服务器并监听指定端口
