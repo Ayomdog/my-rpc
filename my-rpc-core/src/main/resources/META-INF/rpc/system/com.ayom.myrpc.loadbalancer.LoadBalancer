@@ -1,0 +1,4 @@
+roundRobin=com.ayom.myrpc.loadbalancer.RandomLoadBalance
+random=com.ayom.myrpc.loadbalancer.RandomLoadBalance
+consistenHash=com.ayom.myrpc.loadbalancer.ConsistentHashLoadBalance
+

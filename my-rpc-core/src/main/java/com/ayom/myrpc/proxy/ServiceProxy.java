@@ -7,6 +7,8 @@ import cn.hutool.http.HttpResponse;
 import com.ayom.myrpc.RpcApplication;
 import com.ayom.myrpc.config.RpcConfig;
 import com.ayom.myrpc.constant.RpcConstant;
+import com.ayom.myrpc.loadbalancer.LoadBalancer;
+import com.ayom.myrpc.loadbalancer.LoadBalancerFactory;
 import com.ayom.myrpc.model.RpcRequest;
 import com.ayom.myrpc.model.RpcResponse;
 import com.ayom.myrpc.model.ServiceMetaInfo;
@@ -26,6 +28,7 @@ import io.vertx.core.net.SocketAddress;
 import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
@@ -68,55 +71,15 @@ public class ServiceProxy implements InvocationHandler {
             if (CollUtil.isEmpty(serviceMetaInfoList)) {
                 throw new RuntimeException("暂无服务地址");
             }
-            ServiceMetaInfo selectedServiceMetaInfo = serviceMetaInfoList.get(0);
+            //负载均衡
+            LoadBalancer loadBalancer = LoadBalancerFactory.getInstance(rpcConfig.getLoadBalancer());
+            //将调用方法名作为负载均衡参数
+            HashMap<String, Object> requestParams = new HashMap<>();
+            requestParams.put("methodName",rpcRequest.getMethodName());
+            ServiceMetaInfo selectedServiceMetaInfo = loadBalancer.select(requestParams, serviceMetaInfoList);
             // 发送 TCP 请求
             RpcResponse rpcResponse = VertxTcpClient.doRequest(rpcRequest, selectedServiceMetaInfo);
             return rpcResponse.getData();
-            //    Vertx vertx = Vertx.vertx();
-        //    NetClient netClient = vertx.createNetClient();
-        //    CompletableFuture<RpcResponse> responseFuture = new CompletableFuture<>();
-        //    netClient.connect(selectedServiceMetaInfo.getServicePort(), selectedServiceMetaInfo.getServiceHost(),
-        //            result -> {
-        //                if (result.succeeded()) {
-        //                    System.out.println("Connected to TCP server");
-        //                    io.vertx.core.net.NetSocket socket = result.result();
-        //                    // 发送数据
-        //                    // 构造消息
-        //                    ProtocolMessage<RpcRequest> protocolMessage = new ProtocolMessage<>();
-        //                    ProtocolMessage.Header header = new ProtocolMessage.Header();
-        //                    header.setMagic(ProtocolConstant.PROTOCOL_MAGIC);
-        //                    header.setVersion(ProtocolConstant.PROTOCOL_VERSION);
-        //                    header.setSerializer((byte) ProtocolMessageSerializerEnum.getByValue(RpcApplication.getRpcConfig().getSerializer()).getKey());
-        //                    header.setType((byte) ProtocolMessageTypeEnum.REQUEST.getKey());
-        //                    header.setRequestId(IdUtil.getSnowflakeNextId());
-        //                    protocolMessage.setHeader(header);
-        //                    protocolMessage.setBody(rpcRequest);
-        //                    // 编码请求
-        //                    try {
-        //                        Buffer encodeBuffer = ProtocolMessageEncoder.encode(protocolMessage);
-        //                        socket.write(encodeBuffer);
-        //                    } catch (IOException e) {
-        //                        throw new RuntimeException("协议消息编码错误");
-        //                    }
-        //
-        //                    // 接收响应
-        //                    socket.handler(buffer -> {
-        //                        try {
-        //                            ProtocolMessage<RpcResponse> rpcResponseProtocolMessage = (ProtocolMessage<RpcResponse>) ProtocolMessageDecoder.decode(buffer);
-        //                            responseFuture.complete(rpcResponseProtocolMessage.getBody());
-        //                        } catch (IOException e) {
-        //                            throw new RuntimeException("协议消息解码错误");
-        //                        }
-        //                    });
-        //                } else {
-        //                    System.err.println("Failed to connect to TCP server");
-        //                }
-        //            });
-        //
-        //    RpcResponse rpcResponse = responseFuture.get();
-        //    // 记得关闭连接
-        //    netClient.close();
-        //    return rpcResponse.getData();
         } catch (IOException e) {
             throw new RuntimeException("调用失败");
         }

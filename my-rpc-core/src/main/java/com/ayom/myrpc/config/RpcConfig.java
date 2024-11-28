@@ -1,5 +1,8 @@
 package com.ayom.myrpc.config;
 
+import com.ayom.myrpc.loadbalancer.LoadBalanceKeys;
+import com.ayom.myrpc.loadbalancer.LoadBalancer;
+import com.ayom.myrpc.loadbalancer.RoundRobinLoadBalancer;
 import com.ayom.myrpc.serializer.Serializer;
 import com.ayom.myrpc.serializer.SerializerKeys;
 import lombok.Data;
@@ -37,4 +40,8 @@ public class RpcConfig {
      * 注册中心配置
      */
     private RegistryConfig registryConfig = new RegistryConfig();
+    /**
+     * 负载均衡器
+     */
+    private String loadBalancer = LoadBalanceKeys.ROUND_ROBIN;
 }
