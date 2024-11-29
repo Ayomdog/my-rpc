@@ -1,5 +1,7 @@
 package com.ayom.myrpc.config;
 
+import com.ayom.myrpc.fault.retry.RetryStrategyKeys;
+import com.ayom.myrpc.fault.tolerant.TolerantStrategyKeys;
 import com.ayom.myrpc.loadbalancer.LoadBalanceKeys;
 import com.ayom.myrpc.loadbalancer.LoadBalancer;
 import com.ayom.myrpc.loadbalancer.RoundRobinLoadBalancer;
@@ -44,4 +46,12 @@ public class RpcConfig {
      * 负载均衡器
      */
     private String loadBalancer = LoadBalanceKeys.ROUND_ROBIN;
+    /**
+     * 重试策略
+     */
+    private String retryStrategy = RetryStrategyKeys.NO;
+    /**
+     * 容错策略
+     */
+    private String tolerantStrategy = TolerantStrategyKeys.FAIL_FAST;
 }

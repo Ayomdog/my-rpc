@@ -1,0 +1,2 @@
+no=com.ayom.myrpc.fault.retry.NoRetryStrategy
+fixedInterval=com.ayom.myrpc.fault.retry.FixedIntervalRetryStrategy

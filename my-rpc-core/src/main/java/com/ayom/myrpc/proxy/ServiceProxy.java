@@ -7,6 +7,8 @@ import cn.hutool.http.HttpResponse;
 import com.ayom.myrpc.RpcApplication;
 import com.ayom.myrpc.config.RpcConfig;
 import com.ayom.myrpc.constant.RpcConstant;
+import com.ayom.myrpc.fault.retry.RetryStrategy;
+import com.ayom.myrpc.fault.retry.RetryStrategyFactory;
 import com.ayom.myrpc.loadbalancer.LoadBalancer;
 import com.ayom.myrpc.loadbalancer.LoadBalancerFactory;
 import com.ayom.myrpc.model.RpcRequest;
@@ -78,7 +80,10 @@ public class ServiceProxy implements InvocationHandler {
             requestParams.put("methodName",rpcRequest.getMethodName());
             ServiceMetaInfo selectedServiceMetaInfo = loadBalancer.select(requestParams, serviceMetaInfoList);
             // 发送 TCP 请求
-            RpcResponse rpcResponse = VertxTcpClient.doRequest(rpcRequest, selectedServiceMetaInfo);
+            RetryStrategy retryStrategy = RetryStrategyFactory.getInstance(rpcConfig.getRetryStraegy());
+            RpcResponse rpcResponse = retryStrategy.doRetry(() ->
+                VertxTcpClient.doRequest(rpcRequest, selectedServiceMetaInfo)
+            );
             return rpcResponse.getData();
         } catch (IOException e) {
             throw new RuntimeException("调用失败");
